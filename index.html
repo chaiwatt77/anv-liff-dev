@@ -372,25 +372,30 @@
                 try {
                     await liff.init({ liffId: LIFF_ID });
 
-                    // 🔹 ดึง token จาก query
+                    // 🔹 ดึง token จาก query หรือ sessionStorage
                     const urlParams = new URLSearchParams(
                         window.location.search,
                     );
-                    const token = urlParams.get("token");
+                    let token = urlParams.get("token");
+
+                    if (token) {
+                        sessionStorage.setItem("link_line_token", token);
+                        window.history.replaceState(
+                            {},
+                            document.title,
+                            window.location.pathname,
+                        );
+                    } else {
+                        token = sessionStorage.getItem("link_line_token");
+                    }
 
                     if (!token) {
                         throw new Error("ไม่พบ token");
                     }
 
-                    window.history.replaceState(
-                        {},
-                        document.title,
-                        window.location.pathname,
-                    );
-
                     // 🔹 login
                     if (!liff.isLoggedIn()) {
-                        liff.login({ redirectUri: window.location.href });
+                        liff.login();
                         return;
                     }
 
@@ -423,6 +428,7 @@
                         throw new Error(text || "เชื่อมบัญชีไม่สำเร็จ");
                     }
 
+                    sessionStorage.removeItem("link_line_token");
                     showSuccess("เชื่อมบัญชี LINE สำเร็จ!");
 
                     // 🔹 ปิด LIFF กลับไปแชท
